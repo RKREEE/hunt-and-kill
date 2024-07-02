@@ -2,6 +2,11 @@ import random, time, os, colorama
 
 colorama.init()
 maze_colour = f"{colorama.Fore.WHITE}{colorama.Back.BLACK}"
+start_colour = f"{colorama.Fore.GREEN}{colorama.Back.GREEN}"
+end_colour = f"{colorama.Fore.RED}{colorama.Back.RED}"
+reset_colour = f"{colorama.Fore.RESET}{colorama.Back.RESET}"
+
+slept = 0
 size = 20
 RIGHT, LEFT, UP, DOWN = -1, 1, -size, size
 last_hunted_index = 0
@@ -12,10 +17,19 @@ class Square:
         self.visited = False
 
 def hunt_and_kill(grid, print=True):
-    
+    global slept
     index = random.randint(0, len(grid)-1)
     current_square = grid[index]
     current_square.visited = True
+    
+    edges = [
+                [i * size for i in range(size)],
+                [(i + 1) * size - 1 for i in range(size)],
+                list(range(size)),
+                list(range(size * (size - 1), size * size))
+            ]
+    edge = random.choice(edges)
+    start = random.randint(0, len(edge)-1)
 
     while True: 
         # kill phase
@@ -24,8 +38,10 @@ def hunt_and_kill(grid, print=True):
 
             if print:
                 os.system("cls" if os.name == "nt" else "clear")
-                display_maze(grid, index)
+                display_maze(grid, index, start=start)
                 time.sleep(0.1)
+                slept += 0.1
+
 
             if not neighbours:
                 break
@@ -98,10 +114,10 @@ def get_neighbours(grid, index, visited: bool):
 def create_grid(size):
     return [Square() for _ in range(size * size)]
 
-def display_maze(grid, index):
+def display_maze(grid, index=0, start=0):
     maze_str = ""
 
-    maze_str += f"{maze_colour}┌" + "───┬" * (size - 1) + f"───┐\n{colorama.Fore.RESET}{colorama.Back.RESET}"
+    maze_str += f"{maze_colour}┌" + "───┬" * (size - 1) + f"───┐\n{reset_colour}"
 
     top = "│"
     bottom = "├"
@@ -110,35 +126,37 @@ def display_maze(grid, index):
 
         if i != 0 and i % size == 0:
             row = f"{maze_colour}" + top + "\n" + bottom
-            maze_str += row[:-1] + f"┤\n{colorama.Fore.RESET}{colorama.Back.RESET}"
+            maze_str += row[:-1] + f"┤\n{reset_colour}"
             top = "│"
             bottom = "├"
 
-        visited = " "
-        debug = False
-        if debug:
-            if index == i:
-                visited = "y"
-            elif square.visited:
-                visited = "x"
+        square_info = " "
+        if i == start:
+            square_info = f"{start_colour}x{maze_colour}"
+        elif i == (size*size) - 1 - start:
+            square_info = f"{end_colour}x{maze_colour}"
 
         if square.walls["right"] or (i+1) % size == 0:
-            top += f" {visited} │"
+            top += f" {square_info} │"
         else:
-            top += f" {visited}  "
+            top += f" {square_info}  "
         
         if square.walls["down"]:
             bottom += "───┼"
         else:
             bottom += "   ┼"
     
-    maze_str += f"{maze_colour}" + top + f"\n{colorama.Fore.RESET}{colorama.Back.RESET}"
-    maze_str += f"{maze_colour}└" + "───┴" * (size - 1) + f"───┘\n{colorama.Fore.RESET}{colorama.Back.RESET}"
+    maze_str += f"{maze_colour}" + top + f"\n{reset_colour}"
+    maze_str += f"{maze_colour}└" + "───┴" * (size - 1) + f"───┘\n{reset_colour}"
     print(maze_str + colorama.Fore.RESET)
 
 def main():
     grid = create_grid(size)
+    start = time.time()
     maze = hunt_and_kill(grid)
+    print(f"{round(time.time() - start, 1)}s")
+    if slept: 
+        print(f"{round(time.time() - start - slept, 1)}s without sleeps")
 
 if __name__ == "__main__":
     main()
