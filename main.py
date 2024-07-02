@@ -29,7 +29,7 @@ def hunt_and_kill(grid, print=True):
                 list(range(size * (size - 1), size * size))
             ]
     edge = random.choice(edges)
-    start = random.randint(0, len(edge)-1)
+    start = random.choice(edge)
 
     while True: 
         # kill phase
