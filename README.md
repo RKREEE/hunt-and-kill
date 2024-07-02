@@ -1,0 +1,3 @@
+- Install dependencies: `python -m pip install -r requirements.txt`
+- Run maze generator: `python main.py`
+- Solve maze :grin:
